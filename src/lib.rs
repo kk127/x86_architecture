@@ -5,16 +5,29 @@ use log::info;
 use num_derive::FromPrimitive;
 use num_traits::FromPrimitive;
 
-pub fn convert_u8_twocomplement(num: u8) -> i8 {
-    let binary_num = format!("{:08x}", num);
-    let str_binary = binary_num.chars().collect::<Vec<char>>();
-    if str_binary[0] == '0' {
-        num as i8
-    } else {
-        let inversed_bit = !num; 
-        - ((inversed_bit + 1) as i8)
-    }
-}
+// pub fn convert_u8_twocomplement(num: u8) -> i8 {
+//     let binary_num = format!("{:08b}", num);
+//     let str_binary = binary_num.chars().collect::<Vec<char>>();
+//     if str_binary[0] == '0' {
+//         println!("============{} {}", num, binary_num);
+//         num as i8
+//     } else {
+//         let inversed_bit = !num;
+//         println!("============{} {} {}", num, binary_num, inversed_bit);
+//         - (inversed_bit as i32 + 1) as i8
+//     }
+// }
+
+// pub fn convert_u32_twocomplement(num: u32) -> i32 {
+//     let binary_num = format!("{:032b}", num);
+//     let str_binary = binary_num.chars().collect::<Vec<char>>();
+//     if str_binary[0] == '0' {
+//         num as i32
+//     } else {
+//         let inversed_bit = !num; 
+//         - (inversed_bit as i64 + 1) as i32
+//     }
+// }
 
 #[derive(Debug, PartialEq, Eq, Hash, FromPrimitive)]
 pub enum Register {
@@ -39,14 +52,19 @@ pub struct Emulator {
 impl Emulator {
     pub fn new(eip: usize, esp: usize, filename: String) -> Emulator {
         let path = Path::new(&filename);
+
+        let mut memory: Vec<u8> = vec![0; eip];
         
-        let memory: Vec<u8> = match fs::read(path) {
+        let mut data: Vec<u8> = match fs::read(path) {
             Ok(data) => {
                 info!("ROM file was successfully read");
                 data
             }
             Err(_) => panic!("Could not read ROM file"),
         };
+
+        memory.append(&mut data);
+        let memory = memory;
 
         // Register initialization
         let mut registers: HashMap<Register, usize> = HashMap::new();
@@ -75,7 +93,11 @@ pub fn get_code32(emu: & Emulator, index: usize) -> u32 {
 }
 
 pub fn get_sign_code8(emu: &mut Emulator, index: usize) -> i8 {
-    convert_u8_twocomplement(emu.memory[emu.eip + index])
+    emu.memory[emu.eip + index] as i8
+}
+
+pub fn get_sign_code32(emu: &mut Emulator, index: usize) -> i32 {
+    get_code32(emu, index) as i32 
 }
 
 pub fn dump_registers(emu: & Emulator) {
@@ -93,20 +115,17 @@ pub fn mov_r32_imm32(emu: &mut Emulator) {
     emu.eip += 5;
 }
 
-
 pub fn short_jump(emu: &mut Emulator) {
     let diff = get_sign_code8(emu, 1);
     emu.eip = (emu.eip as i8 + diff + 2) as usize;
 }
 
+pub fn near_jump(emu: &mut Emulator) {
+    let diff: i32 = get_sign_code32(emu, 1);
+    emu.eip = (emu.eip as i32 + diff + 5) as usize;
+}
+
 mod test {
     use super::*;
 
-    #[test]
-    fn test_convert_u8_twocomplement() {
-        assert_eq!(convert_u8_twocomplement(  0),   0);
-        assert_eq!(convert_u8_twocomplement(127),  127);
-        assert_eq!(convert_u8_twocomplement(128), -128);
-        assert_eq!(convert_u8_twocomplement(249),   -7);
-    }
 }

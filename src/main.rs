@@ -5,7 +5,7 @@ mod lib;
 
 use std::env;
 use std::collections::HashMap;
-use log::info;
+use log::{info, warn};
 use lib::*;
 
 // const REGISTERS_COUNT: usize = 8;
@@ -19,12 +19,13 @@ fn main() {
 
     let filename = &args[1];
 
-    let mut emu = Emulator::new(0x0000, 0x7c00, filename.to_string());
+    let mut emu = Emulator::new(0x7c00, 0x7c00, filename.to_string());
 
     let mut instructions: HashMap<u8, fn(&mut Emulator)> = HashMap::new();
     for i in 0..8 {
         instructions.insert(0xB8 + i, mov_r32_imm32);
     }
+    instructions.insert(0xE9, near_jump);
     instructions.insert(0xEB, short_jump);
 
     while emu.eip < 1024 * 1024 {
@@ -35,7 +36,7 @@ fn main() {
         let instruction = match instructions.get(&code) {
             Some(k) => k,
             None => {
-                info!("Not implimented instruction: {:x}", code);
+                warn!("Not implimented instruction: {:x}", code);
                 break;
             },
         };
