@@ -1,15 +1,12 @@
 extern crate log;
 extern crate num;
 
-mod lib;
-
 use std::env;
 use std::collections::HashMap;
-use log::{info, warn};
-use lib::*;
+use log::{warn};
 
-// const REGISTERS_COUNT: usize = 8;
-
+use x86_architecture::emulator::{Emulator};
+use x86_architecture::instruction::*;
 
 fn main() {
     env::set_var("RUST_LOG", "info");
