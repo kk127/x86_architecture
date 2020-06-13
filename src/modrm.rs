@@ -2,15 +2,15 @@ use crate::emulator_function::{get_code8, get_sign_code8, get_sign_code32};
 use crate::emulator::Emulator;
 use crate::emulator_function::*;
 
-use num_traits::FromPrimitive;
+// use num_traits::FromPrimitive;
 use log::error;
 use std::process;
 
-#[derive(Debug)]
-pub enum OpRegIndex {
-    Opecode(u8),
-    RegIndex(u8),
-}
+// #[derive(Debug)]
+// pub enum OpRegIndex {
+//     Opecode(u8),
+//     RegIndex(u8),
+// }
 
 pub enum Disp8_32 {
     Disp8(i8),
@@ -19,7 +19,7 @@ pub enum Disp8_32 {
 
 pub struct ModRM {
     pub md: u8,
-    pub op_reg: OpRegIndex,
+    pub op_reg: u8,
     pub rm: u8,
     pub sib: u8,
     pub disp: Disp8_32,
@@ -29,7 +29,7 @@ impl ModRM {
     pub fn new() -> ModRM {
         ModRM {
             md: 0,
-            op_reg: OpRegIndex::RegIndex(0),
+            op_reg: 0,
             rm: 0,
             sib: 0,
             disp: Disp8_32::Disp8(0),
@@ -41,7 +41,7 @@ pub fn parse_modrm(emu: &mut Emulator, modrm: &mut ModRM) {
     let code: u8 = get_code8(emu, 0);
     
     modrm.md = (code & 0xC0) >> 6;
-    modrm.op_reg = OpRegIndex::Opecode((code & 0x38) >> 3);
+    modrm.op_reg = (code & 0x38) >> 3;
     modrm.rm = code & 0x07;
 
     emu.eip += 1;
@@ -71,12 +71,7 @@ pub fn set_rm32(emu: &mut Emulator, modrm: & ModRM, value: u32) {
 }
 
 pub fn set_r32(emu: &mut Emulator, modrm: &ModRM, value: u32) {
-    let index = match modrm.op_reg {
-        OpRegIndex::Opecode(v) => v,
-        OpRegIndex::RegIndex(v) => v,
-    };
-
-    set_register32(emu, index, value);
+    set_register32(emu, modrm.op_reg, value);
 }
 
 pub fn get_rm32(emu: &mut Emulator, modrm: &ModRM) -> u32 {
@@ -89,15 +84,15 @@ pub fn get_rm32(emu: &mut Emulator, modrm: &ModRM) -> u32 {
 }
 
 pub fn get_r32(emu: &mut Emulator, modrm: &ModRM) -> u32 {
-    let index;
-    if let OpRegIndex::RegIndex(v) = modrm.op_reg {
-        index = v;
-    } else {
-        error!("get_r32 can't match modrm.op_reg `{:?}`", modrm.op_reg);
-        process::exit(1);
-    }
+    // let index;
+    // if let OpRegIndex::RegIndex(v) = modrm.op_reg {
+    //     index = v;
+    // } else {
+    //     error!("get_r32 can't match modrm.op_reg `{:?}`", modrm.op_reg);
+    //     process::exit(1);
+    // }
 
-    get_register32(emu, index)
+    get_register32(emu, modrm.op_reg)
 }
 
 pub fn calc_memory_address(emu: &mut Emulator, modrm: &ModRM) -> u32 {

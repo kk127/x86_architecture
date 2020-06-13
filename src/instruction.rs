@@ -79,7 +79,7 @@ pub fn code_83(emu: &mut Emulator) {
     parse_modrm(emu, &mut modrm);
 
     match modrm.op_reg {
-        OpRegIndex::Opecode(5) => sub_rm32_imm8(emu, &mut modrm),
+        5 => sub_rm32_imm8(emu, &mut modrm),
         _ => {
             error!("not implemented: 83 {:?}", modrm.op_reg);
             process::exit(1);
@@ -98,7 +98,7 @@ pub fn code_ff(emu: &mut Emulator) {
     parse_modrm(emu, &mut modrm);
 
     match modrm.op_reg {
-        OpRegIndex::Opecode(0) => inc_rm32(emu, &mut modrm),
+        0 => inc_rm32(emu, &mut modrm),
         _ => {
             error!("not implemented: FF {:?}", modrm.op_reg);
             process::exit(1)
