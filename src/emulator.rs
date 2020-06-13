@@ -32,10 +32,10 @@ impl Emulator {
         
         let mut data: Vec<u8> = match fs::read(path) {
             Ok(data) => {
-                info!("ROM file was successfully read");
+                info!("ROM file was successfully read.");
                 data
             }
-            Err(_) => panic!("Could not read ROM file"),
+            Err(_) => panic!("Could not read ROM file."),
         };
 
         memory.append(&mut data);
