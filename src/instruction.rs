@@ -79,6 +79,7 @@ pub fn code_83(emu: &mut Emulator) {
     parse_modrm(emu, &mut modrm);
 
     match modrm.op_reg {
+        0 => add_rm32_imm8(emu, &mut modrm),
         5 => sub_rm32_imm8(emu, &mut modrm),
         _ => {
             error!("not implemented: 83 {:?}", modrm.op_reg);
@@ -142,4 +143,36 @@ pub fn call_rel32(emu: &mut Emulator) {
 
 pub fn ret(emu: &mut Emulator) {
     emu.eip = pop32(emu) as usize;
+}
+
+pub fn leave(emu: &mut Emulator) {
+    let ebp_index = Register::EBP as u8;
+    let esp_index = Register::ESP as u8;
+    let pop = pop32(emu);
+
+    let ebp: u32 = get_register32(emu, ebp_index);
+    set_register32(emu, esp_index, ebp);
+    set_register32(emu, ebp_index, pop);
+    emu.eip += 1;
+}
+
+pub fn push_imm32(emu: &mut Emulator) {
+    let value: u32 = get_code32(emu, 1);
+    push32(emu, value);
+    emu.eip += 5;
+}
+
+pub fn push_imm8(emu: &mut Emulator) {
+    let value = get_code8(emu, 1) as u32;
+    push32(emu, value);
+    emu.eip += 2
+}
+
+pub fn add_rm32_imm8(emu: &mut Emulator, modrm: &mut ModRM) {
+    let rm32: u32 = get_rm32(emu, modrm);
+    let imm8: i64 = get_sign_code8(emu, 0) as i64;
+    emu.eip += 1;
+
+    let value = (rm32 as i64 + imm8) as u32;
+    set_rm32(emu, modrm, value);
 }

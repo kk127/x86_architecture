@@ -30,8 +30,8 @@ fn main() {
         instructions.insert(0x58+i, pop_r32);
     }
 
-    // instructions.insert(0x68, push_imm32);
-    // instructions.insert(0x6A, push_imm8);
+    instructions.insert(0x68, push_imm32);
+    instructions.insert(0x6A, push_imm8);
 
     instructions.insert(0x83, code_83);
     instructions.insert(0x89, mov_rm32_r32);
@@ -41,7 +41,7 @@ fn main() {
     }
     instructions.insert(0xC3, ret);
     instructions.insert(0xC7, mov_rm32_imm32);
-    // instructions.insert(0xC9, leave);
+    instructions.insert(0xC9, leave);
 
     instructions.insert(0xE8, call_rel32);
     instructions.insert(0xE9, near_jump);
