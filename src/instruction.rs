@@ -1,4 +1,4 @@
-use crate::emulator::{Emulator}; 
+use crate::emulator::{Emulator, Register}; 
 use crate::modrm::*;
 use crate::emulator_function::*;
 
@@ -104,4 +104,42 @@ pub fn code_ff(emu: &mut Emulator) {
             process::exit(1)
         }
     }
+}
+
+pub fn push_r32(emu: &mut Emulator) {
+    let reg: u8 = get_code8(emu, 0) - 0x50;
+    push32(emu, get_register32(emu, reg));
+    emu.eip += 1;
+}
+
+pub fn pop_r32(emu: &mut Emulator) {
+    let reg: u8 = get_code8(emu, 0) - 0x58;
+    let pop = pop32(emu);
+    set_register32(emu, reg, pop);
+    emu.eip += 1;
+}
+
+pub fn push32(emu: &mut Emulator, value: u32) {
+    let reg_index = Register::ESP as u8;
+    let address: u32 = get_register32(emu, reg_index) - 4;
+    set_register32(emu, reg_index, address);
+    set_memory32(emu, address, value);
+}
+
+pub fn pop32(emu: &mut Emulator) -> u32 {
+    let reg_index = Register::ESP as u8;
+    let address: u32 = get_register32(emu, reg_index);
+    let ret: u32 = get_memory32(emu, address);
+    set_register32(emu, reg_index, address + 4); 
+    ret
+}
+
+pub fn call_rel32(emu: &mut Emulator) {
+    let diff: i32 = get_sign_code32(emu, 1);
+    push32(emu, emu.eip as u32 + 5);
+    emu.eip = (emu.eip as i64 + diff as i64 + 5) as usize;
+}
+
+pub fn ret(emu: &mut Emulator) {
+    emu.eip = pop32(emu) as usize;
 }
